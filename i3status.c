@@ -412,6 +412,7 @@ int main(int argc, char *argv[]) {
                 CFG_STR("format_down", " - ", CFGF_NONE),
                 CFG_STR("host", "127.0.0.1", CFGF_NONE),
                 CFG_INT("port", 6600, CFGF_NONE),
+                CFG_STR("password","", CFGF_NONE),
                 CFG_CUSTOM_ALIGN_OPT,
                 CFG_CUSTOM_COLOR_OPTS,
                 CFG_CUSTOM_MIN_WIDTH_OPT,
@@ -689,7 +690,8 @@ int main(int argc, char *argv[]) {
                                           cfg_getstr(sec, "format_up"),
                                           cfg_getstr(sec, "format_down"),
                                           cfg_getstr(sec, "host"),
-                                          cfg_getint(sec, "port"));
+                                          cfg_getint(sec, "port"),
+                                          cfg_getstr(sec, "password"));
                                 SEC_CLOSE_MAP;
                         }
                 }
