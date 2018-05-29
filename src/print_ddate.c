@@ -94,6 +94,7 @@ struct disc_time *get_ddate(struct tm *current_tm) {
 
 void print_ddate(yajl_gen json_gen, char *buffer, const char *format, time_t t) {
     char *outwalk = buffer;
+    output_color_t outcolor = COLOR_DEFAULT;
     struct tm current_tm;
     struct disc_time *dt;
     set_timezone(NULL); /* Use local time. */

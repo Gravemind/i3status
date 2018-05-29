@@ -13,6 +13,7 @@ void print_run_watch(yajl_gen json_gen, char *buffer, const char *title, const c
     bool running = process_runs(pidfile);
     const char *walk;
     char *outwalk = buffer;
+    output_color_t outcolor = COLOR_DEFAULT;
 
     if (running || format_down == NULL) {
         walk = format;
@@ -22,7 +23,7 @@ void print_run_watch(yajl_gen json_gen, char *buffer, const char *title, const c
 
     INSTANCE(pidfile);
 
-    START_COLOR((running ? "color_good" : "color_bad"));
+    outcolor = (running ? COLOR_GOOD : COLOR_BAD);
 
     char string_status[STRING_SIZE];
     snprintf(string_status, STRING_SIZE, "%s", (running ? "yes" : "no"));
@@ -34,7 +35,6 @@ void print_run_watch(yajl_gen json_gen, char *buffer, const char *title, const c
     const size_t num = sizeof(placeholders) / sizeof(placeholder_t);
     buffer = format_placeholders(walk, &placeholders[0], num);
 
-    END_COLOR;
     OUTPUT_FULL_TEXT(buffer);
     free(buffer);
 }

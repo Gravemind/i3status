@@ -119,7 +119,7 @@ static bool below_threshold(struct statvfs buf, const char *prefix_type, const c
 void print_disk_info(yajl_gen json_gen, char *buffer, const char *path, const char *format, const char *format_below_threshold, const char *format_not_mounted, const char *prefix_type, const char *threshold_type, const double low_threshold) {
     const char *selected_format = format;
     char *outwalk = buffer;
-    bool colorful_output = false;
+    output_color_t outcolor = COLOR_DEFAULT;
     bool mounted = false;
 
     INSTANCE(path);
@@ -175,8 +175,7 @@ void print_disk_info(yajl_gen json_gen, char *buffer, const char *path, const ch
             format_not_mounted = "";
         selected_format = format_not_mounted;
     } else if (low_threshold > 0 && below_threshold(buf, prefix_type, threshold_type, low_threshold)) {
-        START_COLOR("color_bad");
-        colorful_output = true;
+        outcolor = COLOR_BAD;
         if (format_below_threshold != NULL)
             selected_format = format_below_threshold;
     }
@@ -211,9 +210,6 @@ void print_disk_info(yajl_gen json_gen, char *buffer, const char *path, const ch
 
     const size_t num = sizeof(placeholders) / sizeof(placeholder_t);
     buffer = format_placeholders(selected_format, &placeholders[0], num);
-
-    if (colorful_output)
-        END_COLOR;
 
     *outwalk = '\0';
     OUTPUT_FULL_TEXT(buffer);

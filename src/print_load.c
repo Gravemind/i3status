@@ -13,19 +13,18 @@
 
 void print_load(yajl_gen json_gen, char *buffer, const char *format, const char *format_above_threshold, const float max_threshold) {
     char *outwalk = buffer;
+    output_color_t outcolor = COLOR_DEFAULT;
     /* Get load */
 
 #if defined(__FreeBSD__) || defined(__FreeBSD_kernel__) || defined(linux) || defined(__OpenBSD__) || defined(__NetBSD__) || defined(__APPLE__) || defined(sun) || defined(__DragonFly__)
     double loadavg[3];
     const char *selected_format = format;
-    bool colorful_output = false;
 
     if (getloadavg(loadavg, 3) == -1)
         goto error;
 
     if (loadavg[0] >= max_threshold) {
-        START_COLOR("color_bad");
-        colorful_output = true;
+        outcolor = COLOR_BAD;
         if (format_above_threshold != NULL)
             selected_format = format_above_threshold;
     }
@@ -45,9 +44,6 @@ void print_load(yajl_gen json_gen, char *buffer, const char *format, const char 
 
     const size_t num = sizeof(placeholders) / sizeof(placeholder_t);
     buffer = format_placeholders(selected_format, &placeholders[0], num);
-
-    if (colorful_output)
-        END_COLOR;
 
     *outwalk = '\0';
     OUTPUT_FULL_TEXT(buffer);

@@ -88,10 +88,10 @@ static unsigned long memory_absolute(const char *mem_amount, const unsigned long
 
 void print_memory(yajl_gen json_gen, char *buffer, const char *format, const char *format_degraded, const char *threshold_degraded, const char *threshold_critical, const char *memory_used_method, const char *unit, const int decimals) {
     char *outwalk = buffer;
+    output_color_t outcolor = COLOR_DEFAULT;
 
 #if defined(linux)
     const char *selected_format = format;
-    const char *output_color = NULL;
 
     int unread_fields = 6;
     unsigned long ram_total;
@@ -151,22 +151,19 @@ void print_memory(yajl_gen json_gen, char *buffer, const char *format, const cha
     if (threshold_degraded) {
         const unsigned long threshold = memory_absolute(threshold_degraded, ram_total);
         if (ram_available < threshold) {
-            output_color = "color_degraded";
+            outcolor = COLOR_DEGRADED;
         }
     }
 
     if (threshold_critical) {
         const unsigned long threshold = memory_absolute(threshold_critical, ram_total);
         if (ram_available < threshold) {
-            output_color = "color_bad";
+            outcolor = COLOR_BAD;
         }
     }
 
-    if (output_color) {
-        START_COLOR(output_color);
-
-        if (format_degraded)
-            selected_format = format_degraded;
+    if (outcolor != COLOR_DEFAULT && format_degraded) {
+        selected_format = format_degraded;
     }
 
     char string_ram_total[STRING_SIZE];
@@ -202,9 +199,6 @@ void print_memory(yajl_gen json_gen, char *buffer, const char *format, const cha
 
     const size_t num = sizeof(placeholders) / sizeof(placeholder_t);
     buffer = format_placeholders(selected_format, &placeholders[0], num);
-
-    if (output_color)
-        END_COLOR;
 
     OUTPUT_FULL_TEXT(buffer);
     free(buffer);

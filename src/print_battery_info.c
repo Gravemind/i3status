@@ -137,6 +137,7 @@ static void add_battery_info(struct battery_info *acc, const struct battery_info
 
 static bool slurp_battery_info(struct battery_info *batt_info, yajl_gen json_gen, char *buffer, int number, const char *path, const char *format_down) {
     char *outwalk = buffer;
+    output_color_t outcolor = COLOR_DEFAULT;
 
 #if defined(__linux__)
     char buf[1024];
@@ -519,6 +520,7 @@ static bool slurp_battery_info(struct battery_info *batt_info, yajl_gen json_gen
 static bool slurp_all_batteries(struct battery_info *batt_info, yajl_gen json_gen, char *buffer, const char *path, const char *format_down) {
 #if defined(__linux__)
     char *outwalk = buffer;
+    output_color_t outcolor = COLOR_DEFAULT;
     bool is_found = false;
 
     char *placeholder;
@@ -576,6 +578,7 @@ static bool slurp_all_batteries(struct battery_info *batt_info, yajl_gen json_ge
 
 void print_battery_info(yajl_gen json_gen, char *buffer, int number, const char *path, const char *format, const char *format_down, const char *status_chr, const char *status_bat, const char *status_unk, const char *status_full, int low_threshold, char *threshold_type, bool last_full_capacity, const char *format_percentage, bool hide_seconds) {
     char *outwalk = buffer;
+    output_color_t outcolor = COLOR_DEFAULT;
     struct battery_info batt_info = {
         .full_design = -1,
         .full_last = -1,
@@ -585,7 +588,6 @@ void print_battery_info(yajl_gen json_gen, char *buffer, int number, const char 
         .percentage_remaining = -1,
         .status = CS_UNKNOWN,
     };
-    bool colorful_output = false;
 
 #if defined(__FreeBSD__) || defined(__FreeBSD_kernel__) || defined(__DragonFly__) || defined(__OpenBSD__)
     /* These OSes report battery stats in whole percent. */
@@ -648,11 +650,9 @@ void print_battery_info(yajl_gen json_gen, char *buffer, int number, const char 
 
     if (batt_info.status == CS_DISCHARGING && low_threshold > 0) {
         if (batt_info.percentage_remaining >= 0 && strcasecmp(threshold_type, "percentage") == 0 && batt_info.percentage_remaining < low_threshold) {
-            START_COLOR("color_bad");
-            colorful_output = true;
+            outcolor = COLOR_BAD;
         } else if (batt_info.seconds_remaining >= 0 && strcasecmp(threshold_type, "time") == 0 && batt_info.seconds_remaining < 60 * low_threshold) {
-            START_COLOR("color_bad");
-            colorful_output = true;
+            outcolor = COLOR_BAD;
         }
     }
 
@@ -716,9 +716,6 @@ void print_battery_info(yajl_gen json_gen, char *buffer, int number, const char 
     char *untrimmed = format_placeholders(format, &placeholders[0], num);
     buffer = trim(untrimmed);
     free(untrimmed);
-
-    if (colorful_output)
-        END_COLOR;
 
     OUTPUT_FULL_TEXT(buffer);
     free(buffer);

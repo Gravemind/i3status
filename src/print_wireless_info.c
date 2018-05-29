@@ -501,6 +501,7 @@ error1:
 void print_wireless_info(yajl_gen json_gen, char *buffer, const char *interface, const char *format_up, const char *format_down, const char *format_bitrate, const char *format_noise, const char *format_quality, const char *format_signal) {
     const char *walk;
     char *outwalk = buffer;
+    output_color_t outcolor = COLOR_DEFAULT;
     wireless_info_t info;
 
     INSTANCE(interface);
@@ -522,10 +523,9 @@ void print_wireless_info(yajl_gen json_gen, char *buffer, const char *interface,
     bool prefer_ipv4 = true;
     if (ipv4_address == NULL) {
         if (ipv6_address == NULL) {
-            START_COLOR("color_bad");
+            outcolor = COLOR_BAD;
             outwalk += sprintf(outwalk, "%s", format_down);
 
-            END_COLOR;
             free(ipv4_address);
             free(ipv6_address);
             OUTPUT_FULL_TEXT(buffer);
@@ -540,16 +540,16 @@ void print_wireless_info(yajl_gen json_gen, char *buffer, const char *interface,
     const char *ip_address = (prefer_ipv4) ? ipv4_address : ipv6_address;
     if (!get_wireless_info(interface, &info)) {
         walk = format_down;
-        START_COLOR("color_bad");
+        outcolor = COLOR_BAD;
     } else {
         walk = format_up;
         if (info.flags & WIRELESS_INFO_FLAG_HAS_QUALITY)
-            START_COLOR((info.quality < info.quality_average ? "color_degraded" : "color_good"));
+            outcolor = (info.quality < info.quality_average ? COLOR_DEGRADED : COLOR_GOOD);
         else {
             if (BEGINS_WITH(ip_address, "no IP")) {
-                START_COLOR("color_degraded");
+                outcolor = COLOR_DEGRADED;
             } else {
-                START_COLOR("color_good");
+                outcolor = COLOR_GOOD;
             }
         }
     }
@@ -620,7 +620,6 @@ void print_wireless_info(yajl_gen json_gen, char *buffer, const char *interface,
     const size_t num = sizeof(placeholders) / sizeof(placeholder_t);
     buffer = format_placeholders(walk, &placeholders[0], num);
 
-    END_COLOR;
     free(ipv4_address);
     free(ipv6_address);
     OUTPUT_FULL_TEXT(buffer);

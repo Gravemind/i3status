@@ -13,6 +13,7 @@
 void print_path_exists(yajl_gen json_gen, char *buffer, const char *title, const char *path, const char *format, const char *format_down) {
     const char *walk;
     char *outwalk = buffer;
+    output_color_t outcolor = COLOR_DEFAULT;
     struct stat st;
     const bool exists = (stat(path, &st) == 0);
 
@@ -24,7 +25,7 @@ void print_path_exists(yajl_gen json_gen, char *buffer, const char *title, const
 
     INSTANCE(path);
 
-    START_COLOR((exists ? "color_good" : "color_bad"));
+    outcolor = (exists ? COLOR_GOOD : COLOR_BAD);
 
     char string_status[STRING_SIZE];
 
@@ -37,7 +38,6 @@ void print_path_exists(yajl_gen json_gen, char *buffer, const char *title, const
     const size_t num = sizeof(placeholders) / sizeof(placeholder_t);
     buffer = format_placeholders(walk, &placeholders[0], num);
 
-    END_COLOR;
     OUTPUT_FULL_TEXT(buffer);
     free(buffer);
 }
