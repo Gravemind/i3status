@@ -77,6 +77,55 @@ const char *begin_color_str(output_color_t outcolor, bool try_cfg_section) {
     return colorbuf;
 }
 
+const char *begin_progress_colors_str(output_color_t outcolor, const char *fallback, bool try_cfg_section) {
+    if (!enable_colors || !enable_progress_bars) {
+        return NULL;
+    }
+
+    if (output_format != O_I3BAR)
+        return NULL;
+
+    const char *color_key = NULL;
+    switch (outcolor) {
+        case COLOR_DEFAULT:
+            color_key = "progress_colors_default";
+            break;
+        case COLOR_GOOD:
+            color_key = "progress_colors_good";
+            break;
+        case COLOR_BAD:
+            color_key = "progress_colors_bad";
+            break;
+        case COLOR_DEGRADED:
+            color_key = "progress_colors_degraded";
+            break;
+        case COLOR_SEPARATOR:
+            color_key = "progress_colors_separator";
+            break;
+    }
+    if (!color_key)
+        return NULL;
+
+    const char *color = NULL;
+    if (try_cfg_section && cfg_section)
+        color = cfg_getstr(cfg_section, color_key);
+    if (!color)
+        color = cfg_getstr(cfg_general, color_key);
+
+    if (!color) {
+        /* Use `fallback + " " + progress_color_default_bg` */
+        static char colorbuf[9 + 1 + 9 + 1];
+        const char *bg = cfg_getstr(cfg_general, "progress_color_default_bg");
+        (void)snprintf(colorbuf, sizeof(colorbuf), "%s %s", fallback ? fallback : "-", bg ? bg : "-");
+        return colorbuf;
+    }
+
+    if (color[0] == '\0')
+        return NULL; /* explicitly disabled, don't use fallback */
+
+    return color;
+}
+
 /*
  * Some color formats (xmobar) require to terminate colors again
  *

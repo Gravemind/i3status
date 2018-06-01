@@ -123,6 +123,7 @@ void print_volume(yajl_gen json_gen, char *buffer, const char *fmt, const char *
                                       outwalk,
                                       ivolume,
                                       description);
+        SET_PROGRESS(ivolume);
         goto out;
     } else if (!strcasecmp(device, "default") && pulse_initialize()) {
         /* no device specified or "default" set */
@@ -139,6 +140,7 @@ void print_volume(yajl_gen json_gen, char *buffer, const char *fmt, const char *
                                           outwalk,
                                           ivolume,
                                           description);
+            SET_PROGRESS(ivolume);
             goto out;
         }
         /* negative result or NULL description means error, fail PulseAudio attempt */
@@ -242,6 +244,7 @@ void print_volume(yajl_gen json_gen, char *buffer, const char *fmt, const char *
     }
 
     outwalk = apply_volume_format(fmt, outwalk, avg, mixer_name);
+    SET_PROGRESS(avg);
 
     snd_mixer_close(m);
     snd_mixer_selem_id_free(sid);
@@ -351,6 +354,7 @@ void print_volume(yajl_gen json_gen, char *buffer, const char *fmt, const char *
 
 #endif
     outwalk = apply_volume_format(fmt, outwalk, vol & 0x7f, devicename);
+    SET_PROGRESS(vol & 0x7f);
     close(mixfd);
 #endif
 

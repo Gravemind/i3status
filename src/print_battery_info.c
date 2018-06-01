@@ -698,5 +698,9 @@ void print_battery_info(yajl_gen json_gen, char *buffer, int number, const char 
         }
     }
 
+    if (batt_info.percentage_remaining >= 0) {
+        SET_PROGRESS((int)batt_info.percentage_remaining);
+    }
+
     OUTPUT_FULL_TEXT(buffer);
 }

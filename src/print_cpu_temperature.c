@@ -247,6 +247,8 @@ void print_cpu_temperature_info(yajl_gen json_gen, char *buffer, int zone, const
             selected_format = format_above_threshold;
     }
 
+    SET_PROGRESS(100 * temperature.raw_value / max_threshold);
+
     for (walk = selected_format; *walk != '\0'; walk++) {
         if (*walk != '%') {
             *(outwalk++) = *walk;

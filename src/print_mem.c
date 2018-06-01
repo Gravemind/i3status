@@ -199,6 +199,8 @@ void print_memory(yajl_gen json_gen, char *buffer, const char *format, const cha
         }
     }
 
+    SET_PROGRESS(100 * ram_used / ram_total);
+
     *outwalk = '\0';
     OUTPUT_FULL_TEXT(buffer);
 

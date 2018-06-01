@@ -35,7 +35,7 @@ void set_timezone(const char *tz) {
     tzset();
 }
 
-void print_time(yajl_gen json_gen, char *buffer, const char *title, const char *format, const char *tz, const char *locale, const char *format_time, bool hide_if_equals_localtime, time_t t) {
+void print_time(yajl_gen json_gen, char *buffer, const char *title, const char *format, const char *tz, const char *locale, const char *format_time, const char *progress, bool hide_if_equals_localtime, time_t t) {
     const char *walk;
     output_color_t outcolor = COLOR_DEFAULT;
     char *outwalk = buffer;
@@ -79,6 +79,29 @@ void print_time(yajl_gen json_gen, char *buffer, const char *title, const char *
                 *(outwalk++) = '%';
             }
         }
+    }
+
+    if (progress != NULL) {
+        int p = 0;
+        if (strcmp(progress, "minute") == 0)
+            p = 100 * tm.tm_sec / 60;
+        else if (strcmp(progress, "hour") == 0)
+            p = 100 * (tm.tm_min * 60 + tm.tm_sec) / (60 * 60);
+        else if (strcmp(progress, "12h") == 0)
+            p = 100 * ((tm.tm_hour % 12) * 60 + tm.tm_min) / (12 * 60);
+        else if (strcmp(progress, "day") == 0)
+            p = 100 * (tm.tm_hour * 60 + tm.tm_min) / (24 * 60);
+        else if (strcmp(progress, "monday_week") == 0)
+            p = 100 * ((tm.tm_wday == 0 ? 6 : tm.tm_wday - 1) * 24 + tm.tm_hour) / (7 * 24);
+        else if (strcmp(progress, "week") == 0)
+            p = 100 * (tm.tm_wday * 24 + tm.tm_hour) / (7 * 24);
+        else if (strcmp(progress, "month") == 0)
+            p = 100 * (tm.tm_mday * 24 + tm.tm_hour) / (730);  // @TODO compute actual number for current month
+        else if (strcmp(progress, "year") == 0)
+            p = 100 * (tm.tm_yday) / 365;  // @TODO compute actual number for current year
+        else if (strcmp(progress, "100") == 0)
+            p = 100;
+        SET_PROGRESS(p);
     }
 
     if (locale != NULL) {

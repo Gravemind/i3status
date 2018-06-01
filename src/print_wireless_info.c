@@ -604,6 +604,15 @@ void print_wireless_info(yajl_gen json_gen, char *buffer, const char *interface,
         }
     }
 
+    if (enable_progress_bars && (info.flags & WIRELESS_INFO_FLAG_HAS_QUALITY)) {
+        int progress = 0;
+        if (info.quality_max)
+            progress = PERCENT_VALUE(info.quality, info.quality_max);
+        else
+            progress = info.quality;
+        SET_PROGRESS(progress);
+    }
+
 out:
     free(ipv4_address);
     free(ipv6_address);

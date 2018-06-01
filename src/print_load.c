@@ -26,6 +26,8 @@ void print_load(yajl_gen json_gen, char *buffer, const char *format, const char 
             selected_format = format_above_threshold;
     }
 
+    SET_PROGRESS(100 * loadavg[0] / max_threshold);
+
     for (walk = selected_format; *walk != '\0'; walk++) {
         if (*walk != '%') {
             *(outwalk++) = *walk;
