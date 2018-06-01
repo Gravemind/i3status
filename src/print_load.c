@@ -29,6 +29,8 @@ void print_load(yajl_gen json_gen, char *buffer, const char *format, const char 
             selected_format = format_above_threshold;
     }
 
+    SET_PROGRESS(100 * loadavg[0] / max_threshold);
+
     char string_loadavg_1[STRING_SIZE];
     char string_loadavg_5[STRING_SIZE];
     char string_loadavg_15[STRING_SIZE];

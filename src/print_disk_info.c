@@ -180,6 +180,9 @@ void print_disk_info(yajl_gen json_gen, char *buffer, const char *path, const ch
             selected_format = format_below_threshold;
     }
 
+    if (mounted)
+        SET_PROGRESS(100.0 * (double)(buf.f_blocks - buf.f_bavail) / (double)buf.f_blocks);
+
     char string_free[STRING_SIZE];
     char string_used[STRING_SIZE];
     char string_total[STRING_SIZE];

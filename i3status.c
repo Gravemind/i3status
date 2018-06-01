@@ -37,14 +37,18 @@
 #define CFG_CUSTOM_ALIGN_OPT \
     CFG_STR_CB("align", NULL, CFGF_NONE, parse_align)
 
-#define CFG_CUSTOM_DEFAULT_COLOR_OPT \
-    CFG_STR("color_default", NULL, CFGF_NONE)
+#define CFG_CUSTOM_DEFAULT_COLOR_OPT           \
+    CFG_STR("color_default", NULL, CFGF_NONE), \
+        CFG_STR("progress_colors_default", NULL, CFGF_NONE)
 
-#define CFG_COLOR_OPTS(good, degraded, bad)             \
-    CFG_CUSTOM_DEFAULT_COLOR_OPT,                       \
-        CFG_STR("color_good", good, CFGF_NONE),         \
-        CFG_STR("color_degraded", degraded, CFGF_NONE), \
-        CFG_STR("color_bad", bad, CFGF_NONE)
+#define CFG_COLOR_OPTS(good, degraded, bad)                   \
+    CFG_CUSTOM_DEFAULT_COLOR_OPT,                             \
+        CFG_STR("color_good", good, CFGF_NONE),               \
+        CFG_STR("color_degraded", degraded, CFGF_NONE),       \
+        CFG_STR("color_bad", bad, CFGF_NONE),                 \
+        CFG_STR("progress_colors_good", NULL, CFGF_NONE),     \
+        CFG_STR("progress_colors_degraded", NULL, CFGF_NONE), \
+        CFG_STR("progress_colors_bad", NULL, CFGF_NONE)
 
 #define CFG_CUSTOM_COLOR_OPTS CFG_COLOR_OPTS(NULL, NULL, NULL)
 
@@ -56,6 +60,9 @@
 
 #define CFG_CUSTOM_SEP_BLOCK_WIDTH_OPT \
     CFG_INT("separator_block_width", 0, CFGF_NODEFAULT)
+
+#define CFG_CUSTOM_PROGRESS_OPT \
+    CFG_STR("progress", NULL, CFGF_NONE)
 
 /* socket file descriptor for general purposes */
 int general_socket;
@@ -75,6 +82,7 @@ output_format_t output_format;
 char *pct_mark;
 
 bool enable_colors;
+bool enable_progress_bars;
 
 /*
  * Set the exit_upon_signal flag, because one cannot do anything in a safe
@@ -260,10 +268,12 @@ int main(int argc, char *argv[]) {
     cfg_opt_t general_opts[] = {
         CFG_STR("output_format", "auto", CFGF_NONE),
         CFG_BOOL("colors", 1, CFGF_NONE),
+        CFG_BOOL("progress_bars", 0, CFGF_NONE),
         CFG_STR("separator", "default", CFGF_NONE),
         CFG_STR("color_separator", "#333333", CFGF_NONE),
         CFG_INT("interval", 1, CFGF_NONE),
         CFG_COLOR_OPTS("#00FF00", "#FFFF00", "#FF0000"),
+        CFG_STR("progress_color_default_bg", "#505050", CFGF_NONE),
         CFG_STR("markup", "none", CFGF_NONE),
         CFG_END()};
 
@@ -364,6 +374,7 @@ int main(int argc, char *argv[]) {
         CFG_CUSTOM_MIN_WIDTH_OPT,
         CFG_CUSTOM_SEPARATOR_OPT,
         CFG_CUSTOM_SEP_BLOCK_WIDTH_OPT,
+        CFG_CUSTOM_PROGRESS_OPT,
         CFG_END()};
 
     cfg_opt_t ddate_opts[] = {
@@ -373,6 +384,7 @@ int main(int argc, char *argv[]) {
         CFG_CUSTOM_MIN_WIDTH_OPT,
         CFG_CUSTOM_SEPARATOR_OPT,
         CFG_CUSTOM_SEP_BLOCK_WIDTH_OPT,
+        CFG_CUSTOM_PROGRESS_OPT,
         CFG_END()};
 
     cfg_opt_t load_opts[] = {
@@ -597,6 +609,9 @@ int main(int argc, char *argv[]) {
 
     enable_colors = cfg_getbool(cfg_general, "colors");
 
+    enable_progress_bars = cfg_getbool(cfg_general, "progress_bars");
+    enable_progress_bars &= (output_format == O_I3BAR);  // for now
+
     if (!valid_color(cfg_getstr(cfg_general, "color_default")) ||
         !valid_color(cfg_getstr(cfg_general, "color_good")) ||
         !valid_color(cfg_getstr(cfg_general, "color_degraded")) ||
@@ -751,13 +766,13 @@ int main(int argc, char *argv[]) {
 
             CASE_SEC("time") {
                 SEC_OPEN_MAP("time");
-                print_time(json_gen, buffer, NULL, cfg_getstr(sec, "format"), NULL, NULL, NULL, false, tv.tv_sec);
+                print_time(json_gen, buffer, NULL, cfg_getstr(sec, "format"), NULL, NULL, NULL, cfg_getstr(sec, "progress"), false, tv.tv_sec);
                 SEC_CLOSE_MAP;
             }
 
             CASE_SEC_TITLE("tztime") {
                 SEC_OPEN_MAP("tztime");
-                print_time(json_gen, buffer, title, cfg_getstr(sec, "format"), cfg_getstr(sec, "timezone"), cfg_getstr(sec, "locale"), cfg_getstr(sec, "format_time"), cfg_getbool(sec, "hide_if_equals_localtime"), tv.tv_sec);
+                print_time(json_gen, buffer, title, cfg_getstr(sec, "format"), cfg_getstr(sec, "timezone"), cfg_getstr(sec, "locale"), cfg_getstr(sec, "format_time"), cfg_getstr(sec, "progress"), cfg_getbool(sec, "hide_if_equals_localtime"), tv.tv_sec);
                 SEC_CLOSE_MAP;
             }
 

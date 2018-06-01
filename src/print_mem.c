@@ -200,6 +200,8 @@ void print_memory(yajl_gen json_gen, char *buffer, const char *format, const cha
     const size_t num = sizeof(placeholders) / sizeof(placeholder_t);
     buffer = format_placeholders(selected_format, &placeholders[0], num);
 
+    SET_PROGRESS(100 * ram_used / ram_total);
+
     OUTPUT_FULL_TEXT(buffer);
     free(buffer);
 
