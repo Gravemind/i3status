@@ -10,7 +10,16 @@
 #define BINARY_BASE UINT64_C(1024)
 
 #define MAX_EXPONENT 4
+
+typedef enum {
+    PT_IEC,
+    PT_SI,
+    PT_CUSTOM,
+} prefix_type_t;
+
 static const char *const iec_symbols[MAX_EXPONENT + 1] = {"", "Ki", "Mi", "Gi", "Ti"};
+static const char *const si_symbols[MAX_EXPONENT + 1] = {"", "k", "M", "G", "T"};
+static const char *const custom_symbols[MAX_EXPONENT + 1] = {"", "K", "M", "G", "T"};
 
 static const char memoryfile_linux[] = "/proc/meminfo";
 
@@ -18,15 +27,25 @@ static const char memoryfile_linux[] = "/proc/meminfo";
  * Prints the given amount of bytes in a human readable manner.
  *
  */
-static int print_bytes_human(char *outwalk, uint64_t bytes) {
+static int print_bytes_human(char *outwalk, uint64_t bytes, prefix_type_t prefix_type) {
     double size = bytes;
     int exponent = 0;
-    int bin_base = BINARY_BASE;
-    while (size >= bin_base && exponent < MAX_EXPONENT) {
-        size /= bin_base;
-        exponent += 1;
+    switch (prefix_type) {
+        case PT_IEC:  // fallthrough
+        default:
+            while (size >= BINARY_BASE && exponent < MAX_EXPONENT) {
+                size /= BINARY_BASE;
+                exponent += 1;
+            }
+            return sprintf(outwalk, "%.1f %sB", size, iec_symbols[exponent]);
+        case PT_SI:  // fallthrough
+        case PT_CUSTOM:
+            while (size >= 1000 && exponent < MAX_EXPONENT) {
+                size /= 1000;
+                exponent += 1;
+            }
+            return sprintf(outwalk, "%.1f %sB", size, (prefix_type == PT_SI ? si_symbols : custom_symbols)[exponent]);
     }
-    return sprintf(outwalk, "%.1f %sB", size, iec_symbols[exponent]);
 }
 
 /*
@@ -73,7 +92,7 @@ static long memory_absolute(const long mem_total, const char *size) {
     return mem_absolute;
 }
 
-void print_memory(yajl_gen json_gen, char *buffer, const char *format, const char *format_degraded, const char *threshold_degraded, const char *threshold_critical, const char *memory_used_method) {
+void print_memory(yajl_gen json_gen, char *buffer, const char *format, const char *format_degraded, const char *threshold_degraded, const char *threshold_critical, const char *memory_used_method, const char *prefix_type) {
     char *outwalk = buffer;
 
 #if defined(linux)
@@ -157,28 +176,39 @@ void print_memory(yajl_gen json_gen, char *buffer, const char *format, const cha
             selected_format = format_degraded;
     }
 
+    prefix_type_t pt = PT_IEC;
+    if (prefix_type && *prefix_type) {
+        if (strcasecmp(prefix_type, "decimal") == 0) {
+            pt = PT_IEC;
+        } else if (strcasecmp(prefix_type, "custom") == 0) {
+            pt = PT_CUSTOM;
+        } else {
+            pt = PT_SI;
+        }
+    }
+
     for (walk = selected_format; *walk != '\0'; walk++) {
         if (*walk != '%') {
             *(outwalk++) = *walk;
 
         } else if (BEGINS_WITH(walk + 1, "total")) {
-            outwalk += print_bytes_human(outwalk, ram_total);
+            outwalk += print_bytes_human(outwalk, ram_total, pt);
             walk += strlen("total");
 
         } else if (BEGINS_WITH(walk + 1, "used")) {
-            outwalk += print_bytes_human(outwalk, ram_used);
+            outwalk += print_bytes_human(outwalk, ram_used, pt);
             walk += strlen("used");
 
         } else if (BEGINS_WITH(walk + 1, "free")) {
-            outwalk += print_bytes_human(outwalk, ram_free);
+            outwalk += print_bytes_human(outwalk, ram_free, pt);
             walk += strlen("free");
 
         } else if (BEGINS_WITH(walk + 1, "available")) {
-            outwalk += print_bytes_human(outwalk, ram_available);
+            outwalk += print_bytes_human(outwalk, ram_available, pt);
             walk += strlen("available");
 
         } else if (BEGINS_WITH(walk + 1, "shared")) {
-            outwalk += print_bytes_human(outwalk, ram_shared);
+            outwalk += print_bytes_human(outwalk, ram_shared, pt);
             walk += strlen("shared");
 
         } else if (BEGINS_WITH(walk + 1, "percentage_free")) {

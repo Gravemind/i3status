@@ -447,6 +447,10 @@ As format placeholders, +total+, +used+, +free+, +available+ and +shared+ are
 available. These will print human readable values. It's also possible to prefix
 the placeholders with +percentage_+ to get a value in percent.
 
+Byte sizes are presented in a human readable format using a set of prefixes
+whose type can be specified via the "prefix_type" option (binary, decimal, or
+custom), see the +Disk+ module.
+
 It's possible to define a +threshold_degraded+ and a +threshold_critical+ to
 color the status bar output in yellow or red, if the available memory falls
 below the given threshold. Possible values of the threshold can be any integer,

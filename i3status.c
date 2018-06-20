@@ -432,6 +432,7 @@ int main(int argc, char *argv[]) {
         CFG_STR("threshold_degraded", NULL, CFGF_NONE),
         CFG_STR("threshold_critical", NULL, CFGF_NONE),
         CFG_STR("memory_used_method", "classical", CFGF_NONE),
+        CFG_STR("prefix_type", "binary", CFGF_NONE),
         CFG_CUSTOM_ALIGN_OPT,
         CFG_CUSTOM_COLOR_OPTS,
         CFG_CUSTOM_MIN_WIDTH_OPT,
@@ -745,7 +746,7 @@ int main(int argc, char *argv[]) {
 
             CASE_SEC("memory") {
                 SEC_OPEN_MAP("memory");
-                print_memory(json_gen, buffer, cfg_getstr(sec, "format"), cfg_getstr(sec, "format_degraded"), cfg_getstr(sec, "threshold_degraded"), cfg_getstr(sec, "threshold_critical"), cfg_getstr(sec, "memory_used_method"));
+                print_memory(json_gen, buffer, cfg_getstr(sec, "format"), cfg_getstr(sec, "format_degraded"), cfg_getstr(sec, "threshold_degraded"), cfg_getstr(sec, "threshold_critical"), cfg_getstr(sec, "memory_used_method"), cfg_getstr(sec, "prefix_type"));
                 SEC_CLOSE_MAP;
             }
 
